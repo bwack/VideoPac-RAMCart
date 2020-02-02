@@ -1,0 +1,11 @@
+PLIST/C V1.42 Beta [Bld 119]
+(C) 1992,2017 Alfred Arnold
+
+Code-Type   Segment  Start-Address  Length (Bytes) End-Address
+--------------------------------------------------------------
+MCS-48        CODE    00000400          0032       00000431
+creator : AS 1.42 Beta [Bld 119]/i386-unknown-win32
+
+altogether 50 bytes CODE
+           
+

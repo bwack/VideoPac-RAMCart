@@ -1,0 +1,180 @@
+README   Version 1.5a
+PCB      Version 1.1
+dev.a48  Version 1.5
+
+The G7000 RAM is a special cart designed for the Videopac G7000 / Odyssey ^ 2
+video game console. It can be used to upload self-written programs into the
+console via a standard RS-232C connection running at 9600 or 19200 bps. The
+programs can have a size up to 12K organised in 4 banks.
+
+Copyright (C) 1997-2002 by Soeren Gust, sgust@ithh.informationstheater.de
+
+This package is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+WARNING: This is not a project for beginners. You have to make your own
+double-sided PCB and you need an EPROM-burner to build it. If you make
+mistakes, you can kill your video game console of even your PC, read this:
+
+*******************************************************************
+* This package is distributed in the hope that it will be useful, *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of  *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the   *
+* GNU General Public License for more details.                    *
+*******************************************************************
+
+How to build the G7000RAM:
+You have to make your own double sided PCB from my layout. For that purpose
+you can use the postscript or the png files. If you need another file
+format contact me and may be able to help you. The PCB is a relative simple
+one for double sided, so it is doable even if you have only built single
+sided PCBs before. But I don't think it is a good idea to try it if you
+have no experience with PCB making. Better ask around local
+computer/electronic user groups for help. The biggest problem is the
+correct alignment of both sides.  When using photo transfer you can use
+2 strips of PCB material to build a right-angled corner. Then you can glue
+the two transparent sheets to this corner and align them. After that put
+the PCB into it. Then you can expose one side after the other, you just
+need to be very careful when turning the PCB over. If your method of
+exposure produced a lot of heat wait with the development until the PCB is
+cooled off again. Since there are no really reliable working methods to
+through plate PCBs at home you have to solder a lot of pins on both sides,
+this requires sockets where you can reach the pins from the top side. For
+the VIAs just use a small piece of wire.
+
+As an alternative you can download the layout in Gerber format on my
+homepage and let a professional PCB maker build the PCB.
+
+At first you should solder the 3 VIAs and the isolated jumper wire under
+the EPROM. Use high quality sockets for all the ICs, this helps debugging.
+Don't forget any of the solder joints on the top side if you don't plate
+through the holes. Burn the file dev.rom into the 27C64 twice, or four
+times if you use a 27C128.
+
+Connecting PC and G7000RAM:
+Connect the cart to a computer with a serial port which can put out data
+with 9600 bps or 19200 bps with 2 stop bits, this includes PCs, Macintoshs,
+Amigas, Atari STs and even C64s (at least at 9600 bps) among others. I have
+tested it on PC with Linux, DOS and on Amiga. Use a standard null-modem
+cable or build a special cable for the G7000RAM: connect GND to pin 5 and
+TxD to pin 2. Also connect the pins RTS and CTS on the PC side. The pins
+DSR, DTR, DCD have to be connected as well. Always turn on the Videopac /
+Odyssey ^ 2 first, I have killed the T0 input of one 8048 while
+development.
+
+How to use it:
+If the switch is open, the G7000 gets its program from the EPROM. The EPROM
+contains the dev.a48 program which displays "SELECT GAME" and waits until a
+key is pressed. You can now select the download speed and machine type:
+
+key machine parameters
+0   PAL     9600,N,8,1
+1   PAL     19200,N,8,2
+2   NTSC    9600,N,8,1
+3   NTSC    19200,N,8,2
+
+The chosen parameters are displayed on the screen, the number in the top
+right edge is the release number of the firmware. Then the cart is ready to
+receive 4 banks of code, each with a size of 3K. The code is put into the
+RAM at 0400h-0fffh of every bank, starting with bank 0. If you don't use
+bankswitching (many commercial programs are only 2K) simply output your
+code 4 times through the serial port, for example the enclosed hello.obj. A
+small upload tool can be found in the linux and dos directory. You can find
+more examples on my home page at http://soeren.informationstheater.de. The
+program uses all address lines, even A10, which is unused in nearly every
+commercial cart. For every received byte the background colour changes.  After
+all banks are filled, the program displays a message and plays the start sound
+again. Now you can press RESET, hold it down and toggle the switch. Then you
+can release RESET. The RAM is now write protected and the program in it runs.
+It starts at bank 3 at 0400h. If you want to upload another program, press and
+hold RESET and open the switch.  Now you can correct any bugs and upload it
+again.
+
+How does it work:
+You can put any EPROM up to 16K into the EPROM socket, for example your own
+programs. The lower 1K of every bank is unused, the space is occupied by
+the internal BIOS. I use a 27C64 to store the download program, because its
+the smallest 28 pin EPROM I can get easily and I wanted the option to use a
+27C128, to make the G7000RAM usable as an EPROM cart, too. The RAM on cart
+is write only, you can't read it even in download mode. To simplify the
+hardware all write accesses with movx are written into the RAM, too in
+download mode. So every write into VDC registers trashes RAM. But the lower
+1KByte of the RAM is unused, so the problem can be solved in software. The
+RS-232C data is converted to TTL via the MC1489 and put into the 8048 via
+the special input T0, where it is read completely under software control
+and put into the RAM. This usage of T0 makes it impossible to use the
+G7000RAM together with "THE VOICE". The LS00 and LS32 control the access to
+RAM and EPROM based on the position of the switch. The RAM is 32KByte,
+because 16KByte SRAM in 8 bit wide is much harder to find.
+
+Miscellaneous:
+I have not found any matching enclosing for the hardware yet, if you know
+where to get one, please contact me.
+
+Since version 1.1 it is possible to use 19200 bps for upload, but you have
+to send the data with 2 stop bits, the timing is too tight to work with
+only 1 stop bit.
+
+Although the main purpose of this hardware is to load your own programs,
+it is possible to load ROM images for o2em with it, but remember: A10 is
+not used by them, so for every bank you have to repeat the last 1KByte.
+
+I have included in the Linux directory some shell scripts I use to assemble
+with ASL and upload to the G7000RAM. The a48 script can only build programs
+for 1 G7000 bank. The upload.sh script supports programs with 1, 2 or 4
+G7000 banks. It takes the filename as first argument and the download speed
+as second argument. The script uses the second serial port /dev/ttyS1, to
+change this edit the variable SERIAL in line 4. It assumes that the user
+which uses it has the necessary rights to write to the serial port,
+"chmod a+rw /dev/ttyS1" is the easiest solution for PCs with only 1 user.
+On systems with several users where not all of them should be able to use
+the serial port you could chgrp the port to uucp and add those users to the
+uucp group who are allowed to use the serial ports, but this depends on
+your setup. You may need some kind of locking, too.
+
+There is now a batch file for DOS in the dos directory. It takes a
+filename, the baud rate and the size of the file as parameters. I don't
+know how to find out the size of a file in DOS batches, so you have to
+enter it manually. You can change the serial port in line 8, it defaults to
+COM2, the second serial port.
+
+Component list:
+IC1  27C64 or 27C128  8K/16K EPROM
+IC2  62256            32K SRAM
+IC3  74LS32           4 OR
+IC4  74LS00           4 NAND
+IC5  MC1489           RS-232 to TTL
+R1   1K               Pull up resistor   
+CON1 SUB-D 9pin male  Serial connector
+JP1  2 pin connector  Connector for the switch
+SW1  on/off switch    Connected to JP1
+C1   47uF 16V         Filter Capacitor
+CB   100nF            Filter Capacitor
+
+Future:
+ - Automatic PAL/NTSC detection
+
+Changes for Release 1.5:
+ - dev.a48 Added NTSC modes
+ - dev.a48 Fixed 9600, sometimes the last bit was interpreted as next start bit
+
+Changes for Release 1.4:
+ - dev.a48 Fixed bug that trashed downloaded program for 0f00h-0fffh in bank 3.
+ - dev.a48 Added background colour flash.
+ - dev.a48 Added version number display.
+
+Changes for Release 1.3:
+ - dev.a48: Serial parameters are now in DOS mode.com order.
+ - dev.a48: Fixed display bug in 19200, now shows 2 stop bits.
+ - Included DOS batch file.
+
+Changes for Release 1.2:
+ - dev.a48: Fixed display bug at power on.
+
+Changes for Release 1.1:
+ - Added C1 to filter the power supply for the G7000RAM.
+ - Ported PCB layout to new layout software.
+ - Added schematic.pdf.
+ - dev.a48: Better user interface, new 19200,8,N,2 mode.

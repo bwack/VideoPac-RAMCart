@@ -1,0 +1,70 @@
+; hello demonstration for the G7000 by Soeren Gust
+; Version 1.2
+
+; $Id: hello.a48,v 1.5 2003/07/19 12:55:13 sgust Exp $
+
+; History:
+; Version 1.2
+;   Removed unnecessary call vdcenable at beginning.
+;
+; Version 1.1
+;   more symbolic names from g7000.h
+;
+; Version 1.0
+;   first release
+;
+; This program simply prints "HELLO WORLD" on the screen
+
+; Copyright (C) 1997-1999 by Soeren Gust, sgust@ithh.informationstheater.de
+
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+; You can always get the latest version at http://soeren.informationstheater.de
+
+	cpu	8048
+
+	org	400h
+	
+	include	"g7000.h"
+
+	jmp	selectgame	; RESET
+	jmp	irq		; interrupt
+	jmp	timer		; timer
+	jmp	vsyncirq	; VSYNC-interrupt
+	jmp	start		; after selectgame
+	jmp	soundirq	; sound-interrupt
+
+timer	retr			; we don't need timer
+
+start
+	call	gfxoff
+	mov	r0,#vdc_char0
+	mov	r3,#20h		; x-position
+	mov	r4,#20h		; y-position
+	mov	r2,#0bh		; length
+	mov	r1,#hellostr & 0ffh	; the string to print, must be in the same page
+loop	mov	a,r1		; get pointer
+	movp	a,@a		; get char
+	mov	r5,a		; into the right register
+	inc	r1		; advance pointer
+	mov	r6,#col_chr_white
+	call	printchar	; print it
+	djnz	r2,loop		; do it again
+	call	gfxon		; lets see what is written
+
+stop	jmp	stop		; Thats all
+run 432
+
+hellostr	db	1dh, 12h, 0eh, 0eh, 17h, 0ch, 11h, 17h, 13h, 0eh, 1ah

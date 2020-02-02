@@ -1,0 +1,9 @@
+#!/bin/sh -
+file=`echo $1 | sed -"es/\..*$//g"`
+asl $file.a48 $2 $3 $4 $5 $6 $7 $8
+if [ "$?" != "0" ]
+then
+    echo "Error in asl";
+    exit;
+fi
+p2bin $file.p $file.obj -r \$400-\$fff
